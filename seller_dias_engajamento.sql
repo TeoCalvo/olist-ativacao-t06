@@ -1,5 +1,5 @@
 WITH params AS (
-      SELECT DATE('2018-08-01') AS date_ref
+      SELECT DATE('2018-07-01') AS date_ref
   ),
   dias_vida AS (
         SELECT oi.seller_id,
@@ -32,6 +32,7 @@ WITH params AS (
         JOIN olist.order_items oi 
         ON o.order_id = oi.order_id
         CROSS JOIN params p
+        WHERE o.order_purchase_timestamp < p.date_ref
         GROUP BY oi.seller_id, p.date_ref
         ORDER BY dias_vendas_total DESC)
 
