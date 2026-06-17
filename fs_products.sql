@@ -404,7 +404,7 @@ tb_top_categorias AS (
 
 tb_product_feature_store AS (
   SELECT
-    t1.seller_id
+    t1.seller_id as idSeller
 
     -- Diversidade de catálogo
     , t1.vlCategoriasDistintasD14
@@ -558,4 +558,4 @@ tb_product_feature_store AS (
 SELECT '{date}' AS dtRef,
        *
 FROM tb_product_feature_store
-ORDER BY seller_id;
+ORDER BY idSeller;

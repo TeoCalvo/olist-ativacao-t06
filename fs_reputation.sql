@@ -7,26 +7,26 @@ WITH tb_pedidos AS (
 tb_reputation AS (
 
     SELECT
-        toi.seller_id,
+        toi.seller_id AS idSeller,
     -- ===========================================
     -- Quantidade de avaliações por seller 28,56,365 dias e lifetime
     -- ===========================================
         COUNT(DISTINCT CASE 
             WHEN DATE(tor.review_creation_date) BETWEEN DATE_SUB('{date}', 28) AND '{date}'
             THEN tp.order_id 
-        END) AS reviews_28d,
+        END) AS reviews28d,
 
         COUNT(DISTINCT CASE 
             WHEN DATE(tor.review_creation_date) BETWEEN DATE_SUB('{date}', 56) AND '{date}'
             THEN tp.order_id 
-        END) AS reviews_56d,
+        END) AS reviews56d,
 
         COUNT(DISTINCT CASE 
             WHEN DATE(tor.review_creation_date) BETWEEN DATE_SUB('{date}', 365) AND '{date}'
             THEN tp.order_id 
-        END) AS reviews_365d,
+        END) AS reviews365d,
 
-        COUNT(DISTINCT tp.order_id) AS reviews_lifetime,
+        COUNT(DISTINCT tp.order_id) AS reviewsLifetime,
     -- ===========================================
     -- Percentual de avaliações por seller 28,56,365 dias e lifetime
     -- ===========================================   
@@ -41,7 +41,7 @@ tb_reputation AS (
                 WHEN CAST(tp.order_purchase_timestamp AS DATE) >= date_sub('{date}', 28)
                 THEN tp.order_id
             END), 0)
-        , 2) AS percentual_28d,
+        , 2) AS percentual28d,
 
         ROUND(
             COUNT(DISTINCT CASE
@@ -54,7 +54,7 @@ tb_reputation AS (
                 WHEN CAST(tp.order_purchase_timestamp AS DATE) >= date_sub('{date}', 56)
                 THEN tp.order_id
             END), 0)
-        , 2) AS percentual_56d,
+        , 2) AS percentual56d,
 
         ROUND(
             COUNT(DISTINCT CASE
@@ -67,7 +67,7 @@ tb_reputation AS (
                 WHEN CAST(tp.order_purchase_timestamp AS DATE) >= date_sub('{date}', 365)
                 THEN tp.order_id
             END), 0)
-        , 2) AS percentual_365d,
+        , 2) AS percentual365d,
 
         ROUND(
             COUNT(DISTINCT CASE
@@ -76,106 +76,106 @@ tb_reputation AS (
             END) * 100.0
             /
             NULLIF(COUNT(DISTINCT tp.order_id), 0)
-        , 2) AS percentual_lifetime,
+        , 2) AS percentualLifetime,
     -- ===========================================
     -- Média das avaliações por seller 28,56,365 dias e lifetime
     -- ===========================================  
-        ROUND(AVG(tor.review_score), 2) AS media_avaliacoes_lifetime,
+        ROUND(AVG(tor.review_score), 2) AS mediaAvaliacoesLifetime,
 
         ROUND(AVG(CASE
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28
             THEN tor.review_score
-        END), 2) AS media_avaliacoes_d28,
+        END), 2) AS mediaAvaliacoesD28,
 
         ROUND(AVG(CASE
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56
             THEN tor.review_score
-        END), 2) AS media_avaliacoes_d56,
+        END), 2) AS mediaAvaliacoesD56,
 
         ROUND(AVG(CASE
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365
             THEN tor.review_score
-        END), 2) AS media_avaliacoes_d365,
+        END), 2) AS mediaAvaliacoesD365,
     -- ===========================================
     -- Desvio Padrão das avaliações por seller 28,56,365 dias e lifetime
     -- ===========================================  
-        ROUND(STDDEV(tor.review_score), 2) AS desvpad_avaliacoes_lifetime,
+        ROUND(STDDEV(tor.review_score), 2) AS desvpadAvaliacoesLifetime,
 
         ROUND(STDDEV(CASE 
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28
             THEN tor.review_score
-        END), 2) AS desvpad_avaliacoes_d28,
+        END), 2) AS desvpadAvaliacoesD28,
 
         ROUND(STDDEV(CASE
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56
             THEN tor.review_score
-        END), 2) AS desvpad_avaliacoes_d56,
+        END), 2) AS desvpadAvaliacoesD56,
 
         ROUND(STDDEV(CASE
             WHEN DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365
             THEN tor.review_score
-        END), 2) AS desvpad_avaliacoes_d365,
+        END), 2) AS desvpadAvaliacoesD365,
     -- ===========================================
     -- Percentual de avaliações recebidas pelo vendedor com nota 1 por 28,56,365 dias e lifetime
     -- ===========================================  
-        ROUND(AVG(CASE WHEN tor.review_score = 1 THEN 1 ELSE 0 END),2) as pct_nota1,
+        ROUND(AVG(CASE WHEN tor.review_score = 1 THEN 1 ELSE 0 END),2) as pctNota1,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pct_nota1_d28,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pctNota1D28,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND  (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pct_nota1_d56,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND  (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pctNota1D56,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pct_nota1_d365,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND (tor.review_score = 1) THEN 1 ELSE 0 END),2) AS pctNota1D365,
     -- ===========================================
     -- Percentual de avaliações recebidas pelo vendedor com nota 2 por 28,56,365 dias e lifetime
     -- =========================================== 
-        ROUND(AVG(CASE WHEN tor.review_score = 2 THEN 1 ELSE 0 END),2) AS pct_nota2,
+        ROUND(AVG(CASE WHEN tor.review_score = 2 THEN 1 ELSE 0 END),2) AS pctNota2,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pct_nota2_d28,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pctNota2D28,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND  (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pct_nota2_d56,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND  (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pctNota2D56,
 
-        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pct_nota2_d365,
+        ROUND(AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND (tor.review_score = 2) THEN 1 ELSE 0 END),2) AS pctNota2D365,
     -- ===========================================
     -- Percentual de avaliações recebidas pelo vendedor com nota 3 por 28,56,365 dias e lifetime
     -- =========================================== 
         AVG(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND tor.review_score = 3
                 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS perc_nota_3_d28,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS percNota3D28,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND tor.review_score = 3 THEN 1
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) THEN 0 END) AS perc_nota_3_d56,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND tor.review_score = 3 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS perc_nota_3_d365,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS percNota3D365,
 
-        AVG(CASE WHEN tor.review_score = 3 THEN 1 ELSE 0 END) AS perc_nota_3_lifetime,
+        AVG(CASE WHEN tor.review_score = 3 THEN 1 ELSE 0 END) AS percNota3Lifetime,
     -- ===========================================
     -- Percentual de avaliações recebidas pelo vendedor com nota 4 por 28,56,365 dias e lifetime
     -- =========================================== 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND tor.review_score = 4 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS perc_nota_4_d28,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS percNota4D28,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND tor.review_score = 4 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) THEN 0 END) AS perc_nota_4_d56,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) THEN 0 END) AS percNota4D56,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND tor.review_score = 4 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS perc_nota_4_d365,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS percNota4D365,
 
-        AVG(CASE WHEN tor.review_score = 4 THEN 1 ELSE 0 END) AS perc_nota_4_lifetime,
+        AVG(CASE WHEN tor.review_score = 4 THEN 1 ELSE 0 END) AS percNota4Lifetime,
     -- ===========================================
     -- Percentual de avaliações recebidas pelo vendedor com nota 5 por 28,56,365 dias e lifetime
     -- =========================================== 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) AND tor.review_score = 5 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS perc_nota_5_d28,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28) THEN 0 END) AS percNota5D28,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) AND tor.review_score = 5 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) THEN 0 END) AS perc_nota_5_d56,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56) THEN 0 END) AS percNota5D56,
 
         AVG(CASE WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) AND tor.review_score = 5 THEN 1
-                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS perc_nota_5_d365,
+                WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365) THEN 0 END) AS percNota5D365,
 
-        AVG(CASE WHEN tor.review_score = 5 THEN 1 ELSE 0 END) AS perc_nota_5_lifetime,
+        AVG(CASE WHEN tor.review_score = 5 THEN 1 ELSE 0 END) AS percNota5Lifetime,
     -- ===========================================
     -- Percentual de Notas Boas:
     -- avaliações nota 4 ou 5 / quantidade de pedidos recebidos pelo seller por 28,56,365 dias e lifetime
@@ -188,7 +188,7 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_boas_d28,
+            END), 0) AS pctNotasBoasD28,
 
         SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56)
@@ -198,7 +198,7 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_boas_d56,
+            END), 0) AS pctNotasBoasD56,
 
         SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365)
@@ -208,13 +208,13 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_boas_d365,
+            END), 0) AS pctNotasBoasD365,
 
         SUM(CASE 
                 WHEN tor.review_score IN (4, 5)
                 THEN 1 ELSE 0 
             END) * 1.0
-        / NULLIF(COUNT(toi.order_id), 0) AS pct_notas_boas_lifetime,
+        / NULLIF(COUNT(toi.order_id), 0) AS pctNotasBoasLifetime,
     -- ===========================================
     --  Percentual de Notas Ruins:
     -- avaliações nota 1 ou 2 / quantidade de pedidos recebidos pelo seller por 28,56,365 dias e lifetime
@@ -227,7 +227,7 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 28)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_ruins_d28,
+            END), 0) AS pctNotasRuinsD28,
 
         SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56)
@@ -237,7 +237,7 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 56)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_ruins_d56,
+            END), 0) AS pctNotasRuinsD56,
 
         SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365)
@@ -247,13 +247,13 @@ tb_reputation AS (
         / NULLIF(SUM(CASE 
                 WHEN (DATE_DIFF('{date}', tp.order_purchase_timestamp) <= 365)
                 THEN 1 ELSE 0 
-            END), 0) AS pct_notas_ruins_d365,
+            END), 0) AS pctNotasRuinsD365,
 
         SUM(CASE 
                 WHEN tor.review_score IN (1, 2)
                 THEN 1 ELSE 0 
             END) * 1.0
-        / NULLIF(COUNT(toi.order_id), 0) AS pct_notas_ruins_lifetime
+        / NULLIF(COUNT(toi.order_id), 0) AS pctNotasRuinsLifetime
 
 
 
