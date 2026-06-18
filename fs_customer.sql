@@ -1,10 +1,8 @@
-DECLARE OR REPLACE VARIABLE dtSafra DATE DEFAULT '2018-07-01';
-
 WITH tb_pedidos AS (
 
     SELECT *
     FROM workspace.olist.orders
-    WHERE order_purchase_timestamp < dtSafra
+    WHERE order_purchase_timestamp < '2018-07-01'
 
 ),
 
@@ -22,7 +20,7 @@ tb_orders_sellers AS (
         o.order_id,
         c.customer_unique_id,
         o.order_purchase_timestamp,
-        dtSafra AS safra_mes
+        '2018-07-01' AS safra_mes
     FROM tb_pedidos o
     INNER JOIN workspace.olist.order_items oi
         ON o.order_id = oi.order_id
@@ -405,169 +403,172 @@ tb_metricas AS (
         c.seller_id,
         c.safra_mes
 
-)
+),
 
 /* =========================================================
    RESULTADO FINAL — PIVOT por período
 ========================================================= */
-SELECT
-    m.seller_id,
-    DATE_TRUNC('MONTH', m.safra_mes) AS dtSafra,
+tb_final AS (
 
-    /* ========================= 28D ========================= */
+    SELECT
+        m.seller_id AS idSeller,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '28d'
-        THEN m.qtd_clientes_distintos END), 0)
-        AS vl_qtd_clientes_distintos_28d,
+        /* ========================= 28D ========================= */
 
-    COALESCE(MAX(CASE WHEN m.periodo = '28d'
-        THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
-        AS pct_taxa_recompra_periodo_28d,
+        COALESCE(MAX(CASE WHEN m.periodo = '28d'
+            THEN m.qtd_clientes_distintos END), 0)
+            AS vlQtdClientesDistintos28d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '28d'
-        THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
-        AS vl_avg_pedidos_por_cliente_28d,
+        COALESCE(MAX(CASE WHEN m.periodo = '28d'
+            THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
+            AS pctTaxaRecompraPeriodo28d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '28d'
-        THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
-        AS pct_concentracao_ihh_28d,
+        COALESCE(MAX(CASE WHEN m.periodo = '28d'
+            THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
+            AS vlAvgPedidosPorCliente28d,
 
-    COALESCE(MAX(CASE WHEN t.periodo = '28d'
-        THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
-        AS vl_tempo_medio_recompra_28d,
+        COALESCE(MAX(CASE WHEN m.periodo = '28d'
+            THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
+            AS pctConcentracaoIhh28d,
 
-    COALESCE(MAX(CASE WHEN p.periodo = '28d'
-        THEN ROUND(
-            CAST(p.clientes_perdidos AS DOUBLE)
-            / NULLIF(p.clientes_ativos_anteriores, 0),
-            4
-        ) END), 0.0)
-        AS pct_churn_clientes_28d,
+        COALESCE(MAX(CASE WHEN t.periodo = '28d'
+            THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
+            AS vlTempoMedioRecompra28d,
 
-    COALESCE(MAX(CASE WHEN n.periodo = '28d'
-        THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
-        END), 0)
-        AS vl_dias_desde_ultimo_cliente_novo_28d,
+        COALESCE(MAX(CASE WHEN p.periodo = '28d'
+            THEN ROUND(
+                CAST(p.clientes_perdidos AS DOUBLE)
+                / NULLIF(p.clientes_ativos_anteriores, 0),
+                4
+            ) END), 0.0)
+            AS pctChurnClientes28d,
 
-    /* ========================= 56D ========================= */
+        COALESCE(MAX(CASE WHEN n.periodo = '28d'
+            THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
+            END), 0)
+            AS vlDiasDesdeUltimoClienteNovo28d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '56d'
-        THEN m.qtd_clientes_distintos END), 0)
-        AS vl_qtd_clientes_distintos_56d,
+        /* ========================= 56D ========================= */
 
-    COALESCE(MAX(CASE WHEN m.periodo = '56d'
-        THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
-        AS pct_taxa_recompra_periodo_56d,
+        COALESCE(MAX(CASE WHEN m.periodo = '56d'
+            THEN m.qtd_clientes_distintos END), 0)
+            AS vlQtdClientesDistintos56d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '56d'
-        THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
-        AS vl_avg_pedidos_por_cliente_56d,
+        COALESCE(MAX(CASE WHEN m.periodo = '56d'
+            THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
+            AS pctTaxaRecompraPeriodo56d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '56d'
-        THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
-        AS pct_concentracao_ihh_56d,
+        COALESCE(MAX(CASE WHEN m.periodo = '56d'
+            THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
+            AS vlAvgPedidosPorCliente56d,
 
-    COALESCE(MAX(CASE WHEN t.periodo = '56d'
-        THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
-        AS vl_tempo_medio_recompra_56d,
+        COALESCE(MAX(CASE WHEN m.periodo = '56d'
+            THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
+            AS pctConcentracaoIhh56d,
 
-    COALESCE(MAX(CASE WHEN p.periodo = '56d'
-        THEN ROUND(
-            CAST(p.clientes_perdidos AS DOUBLE)
-            / NULLIF(p.clientes_ativos_anteriores, 0),
-            4
-        ) END), 0.0)
-        AS pct_churn_clientes_56d,
+        COALESCE(MAX(CASE WHEN t.periodo = '56d'
+            THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
+            AS vlTempoMedioRecompra56d,
 
-    COALESCE(MAX(CASE WHEN n.periodo = '56d'
-        THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
-        END), 0)
-        AS vl_dias_desde_ultimo_cliente_novo_56d,
+        COALESCE(MAX(CASE WHEN p.periodo = '56d'
+            THEN ROUND(
+                CAST(p.clientes_perdidos AS DOUBLE)
+                / NULLIF(p.clientes_ativos_anteriores, 0),
+                4
+            ) END), 0.0)
+            AS pctChurnClientes56d,
 
-    /* ========================= 365D ========================= */
+        COALESCE(MAX(CASE WHEN n.periodo = '56d'
+            THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
+            END), 0)
+            AS vlDiasDesdeUltimoClienteNovo56d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '365d'
-        THEN m.qtd_clientes_distintos END), 0)
-        AS vl_qtd_clientes_distintos_365d,
+        /* ========================= 365D ========================= */
 
-    COALESCE(MAX(CASE WHEN m.periodo = '365d'
-        THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
-        AS pct_taxa_recompra_periodo_365d,
+        COALESCE(MAX(CASE WHEN m.periodo = '365d'
+            THEN m.qtd_clientes_distintos END), 0)
+            AS vlQtdClientesDistintos365d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '365d'
-        THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
-        AS vl_avg_pedidos_por_cliente_365d,
+        COALESCE(MAX(CASE WHEN m.periodo = '365d'
+            THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
+            AS pctTaxaRecompraPeriodo365d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = '365d'
-        THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
-        AS pct_concentracao_ihh_365d,
+        COALESCE(MAX(CASE WHEN m.periodo = '365d'
+            THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
+            AS vlAvgPedidosPorCliente365d,
 
-    COALESCE(MAX(CASE WHEN t.periodo = '365d'
-        THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
-        AS vl_tempo_medio_recompra_365d,
+        COALESCE(MAX(CASE WHEN m.periodo = '365d'
+            THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
+            AS pctConcentracaoIhh365d,
 
-    COALESCE(MAX(CASE WHEN p.periodo = '365d'
-        THEN ROUND(
-            CAST(p.clientes_perdidos AS DOUBLE)
-            / NULLIF(p.clientes_ativos_anteriores, 0),
-            4
-        ) END), 0.0)
-        AS pct_churn_clientes_365d,
+        COALESCE(MAX(CASE WHEN t.periodo = '365d'
+            THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
+            AS vlTempoMedioRecompra365d,
 
-    COALESCE(MAX(CASE WHEN n.periodo = '365d'
-        THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
-        END), 0)
-        AS vl_dias_desde_ultimo_cliente_novo_365d,
+        COALESCE(MAX(CASE WHEN p.periodo = '365d'
+            THEN ROUND(
+                CAST(p.clientes_perdidos AS DOUBLE)
+                / NULLIF(p.clientes_ativos_anteriores, 0),
+                4
+            ) END), 0.0)
+            AS pctChurnClientes365d,
 
-    /* ========================= FULL ========================= */
+        COALESCE(MAX(CASE WHEN n.periodo = '365d'
+            THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
+            END), 0)
+            AS vlDiasDesdeUltimoClienteNovo365d,
 
-    COALESCE(MAX(CASE WHEN m.periodo = 'full'
-        THEN m.qtd_clientes_distintos END), 0)
-        AS vl_qtd_clientes_distintos_full,
+        /* ========================= FULL ========================= */
 
-    COALESCE(MAX(CASE WHEN m.periodo = 'full'
-        THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
-        AS pct_taxa_recompra_periodo_full,
+        COALESCE(MAX(CASE WHEN m.periodo = 'full'
+            THEN m.qtd_clientes_distintos END), 0)
+            AS vlQtdClientesDistintosFull,
 
-    COALESCE(MAX(CASE WHEN m.periodo = 'full'
-        THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
-        AS vl_avg_pedidos_por_cliente_full,
+        COALESCE(MAX(CASE WHEN m.periodo = 'full'
+            THEN ROUND(m.taxa_recompra_periodo, 4) END), 0.0)
+            AS pctTaxaRecompraPeriodoFull,
 
-    COALESCE(MAX(CASE WHEN m.periodo = 'full'
-        THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
-        AS pct_concentracao_ihh_full,
+        COALESCE(MAX(CASE WHEN m.periodo = 'full'
+            THEN ROUND(m.avg_pedidos_por_cliente, 4) END), 0.0)
+            AS vlAvgPedidosPorClienteFull,
 
-    COALESCE(MAX(CASE WHEN t.periodo = 'full'
-        THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
-        AS vl_tempo_medio_recompra_full,
+        COALESCE(MAX(CASE WHEN m.periodo = 'full'
+            THEN ROUND(m.concentracao_ihh, 6) END), 0.0)
+            AS pctConcentracaoIhhFull,
 
-    COALESCE(MAX(CASE WHEN n.periodo = 'full'
-        THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
-        END), 0)
-        AS vl_dias_desde_ultimo_cliente_novo_full
+        COALESCE(MAX(CASE WHEN t.periodo = 'full'
+            THEN ROUND(t.tempo_medio_recompra_dias, 2) END), 0.0)
+            AS vlTempoMedioRecompraFull,
 
-FROM tb_metricas m
+        COALESCE(MAX(CASE WHEN n.periodo = 'full'
+            THEN DATEDIFF(m.safra_mes, n.ultima_data_novo_cliente)
+            END), 0)
+            AS vlDiasDesdeUltimoClienteNovoFull
 
-LEFT JOIN tb_tempo_medio t
-    ON m.periodo = t.periodo
-   AND m.seller_id = t.seller_id
-   AND m.safra_mes = t.safra_mes
+    FROM tb_metricas m
 
-LEFT JOIN tb_clientes_perdidos p
-    ON m.periodo = p.periodo
-   AND m.seller_id = p.seller_id
-   AND m.safra_mes = p.safra_mes
+    LEFT JOIN tb_tempo_medio t
+        ON m.periodo = t.periodo
+    AND m.seller_id = t.seller_id
+    AND m.safra_mes = t.safra_mes
 
-LEFT JOIN tb_ultimo_cliente_novo n
-    ON m.periodo = n.periodo
-   AND m.seller_id = n.seller_id
-   AND m.safra_mes = n.safra_mes
+    LEFT JOIN tb_clientes_perdidos p
+        ON m.periodo = p.periodo
+    AND m.seller_id = p.seller_id
+    AND m.safra_mes = p.safra_mes
 
-GROUP BY
-    m.seller_id,
-    m.safra_mes
+    LEFT JOIN tb_ultimo_cliente_novo n
+        ON m.periodo = n.periodo
+    AND m.seller_id = n.seller_id
+    AND m.safra_mes = n.safra_mes
 
-ORDER BY
-    m.seller_id,
-    m.safra_mes;
+    GROUP BY
+        m.seller_id
 
+    ORDER BY
+        m.seller_id
+)
+
+SELECT '{date}' AS dtRef,
+        *
+FROM tb_final
