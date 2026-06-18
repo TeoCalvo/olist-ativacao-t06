@@ -489,9 +489,6 @@ SELECT
     ELSE s.receita_propria_cidade / mc.receita_total_cidade_destino
   END AS participacaoReceitaPropriaCidade,
 
-  pe.principal_estado_pedidos_seller AS estadoMaiorQtdPedidosSeller,
-  pc.principal_cidade_pedidos_seller AS cidadeMaiorQtdPedidosSeller,
-
   pc.principal_cidade_pedidos_seller AS principalCidadePedidosSeller,
   pe.principal_estado_pedidos_seller AS principalEstadoPedidosSeller,
 
